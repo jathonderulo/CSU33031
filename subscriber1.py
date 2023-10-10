@@ -13,7 +13,7 @@ broker_ip                   = "broker"
 broker_port                 = 50010
 
 # Buffer Size
-bufferSize          = 1024
+bufferSize          = 50000
 
 # Create a datagram socket
 sub_socket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
@@ -55,7 +55,7 @@ def toggle_sub(prod_id, sub_id, broker_address_and_port, subscribed):
         send_subscribe_request(prod_id, sub_id, broker_address_and_port)
         subscribed = True
 
-toggle_after = 4
+toggle_after = 8
 
 packets_recv_num = 0
 
@@ -66,12 +66,18 @@ subscribed = not subscribed
 while(True):
     message, address = sub_socket.recvfrom(bufferSize)
     packets_recv_num += 1
-    if packets_recv_num == toggle_after:
-        toggle_sub("P01", local_id, broker_address_and_port, subscribed)
-        subscribed = not subscribed
-        toggle_after += 4
-    print(message.decode())
-    header_length = message[:2]
-    message_as_string = message.decode()
-    if message[2] == "P":
-        print("Received packet from" + message[3:header_length] + ", message is: " + message[header_length:] )
+    # if packets_recv_num == toggle_after:
+    #     toggle_sub("P01", local_id, broker_address_and_port, subscribed)
+    #     subscribed = not subscribed
+
+    header_length = int(message[:2])
+    header_decoded = message[:header_length].decode()
+    # print("Header is : " + header_decoded)
+    if header_decoded[2] == "P":
+        # print("Received a packet")
+
+        # Open a new file in binary write mode
+        with open('OutputFirst20/output' + str(packets_recv_num) + '.png', 'wb') as new_file:
+            # Write the bytes to the new file
+            new_file.write(message[header_length:])
+        

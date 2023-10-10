@@ -34,7 +34,7 @@ producers_list: [Producer] = [prod1, prod2]
 subscribers_list: [Subscriber] = []
 
 # Buffer Size
-bufferSize                  = 1024
+bufferSize                  = 50000
 
 # Create datagram sockets
 broker_socket      = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
@@ -118,30 +118,38 @@ def unsubscribe(prod_id, sub_id, sub_address_and_port):
 while(True):
     # breaking up the header and payload
     message, address = broker_socket.recvfrom(bufferSize)
-    header_length = message[:2]
-    header_length_as_int = int(header_length)
-    header = message[:header_length_as_int]
+    header_length = int(message[:2])
+    header = message[:header_length]
 
-    message_as_string = message.decode()
-    print(message_as_string)
-    packet_request_type = header.decode()[2]
+    # message_as_string = message.decode()
+    # print(message_as_string)
+    # packet_request_type = header.decode()[2]
 
+    print(message[:6].decode())
+    packet_request_type = message[:6].decode()[2]
+    print("Packet request type is: " + packet_request_type)
 
     if packet_request_type == "S": #example message = 03SP01S01
-        prod_id = message_as_string[header_length_as_int:][:3]
-        sub_id = message_as_string[header_length_as_int:][3:6]
+        message_as_string = message.decode()
+        print(message_as_string)
+        prod_id = message_as_string[header_length:][:3]
+        sub_id = message_as_string[header_length:][3:6]
         subscribe(prod_id, sub_id, address)
 
     elif packet_request_type == "P": # packet
-        prod_id_last_digit = message_as_string[header_length_as_int-1] # header length as int would take the last digit of the prod id. e.g. 06PP01, headerlengthasint = 6. 
-        print(len(producers_list[0].subs_list))
+        print("Received a packet")
+        prod_id_last_digit = message_as_string[header_length-1] # header length as int would take the last digit of the prod id. e.g. 06PP01, headerlengthasint = 6. 
+        # print(int(prod_id_last_digit))
+        # print(len(producers_list[0].subs_list))
         for subscriber in producers_list[int(prod_id_last_digit)-1].subs_list:
             # print("Broker sent msg! ")
             broker_socket.sendto(message, subscriber.sub_address_and_port)
 
     elif packet_request_type == "U":
-        prod_id = message_as_string[header_length_as_int:][:3]
-        sub_id = message_as_string[header_length_as_int:][3:6]
+        message_as_string = message.decode()
+        print(message_as_string)
+        prod_id = message_as_string[header_length:][:3]
+        sub_id = message_as_string[header_length:][3:6]
         unsubscribe(prod_id, sub_id, address)
 
 

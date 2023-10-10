@@ -2,11 +2,22 @@ producers start from port 50000
 brokers start from port 50010
 subscribers start from port 50020
 
-subscribe / unsubscribe requests =  
+
+TODO: ****************************
+implement ack for sub/unsubscribe
+implement separating the bytes into packets of 1024
+implement packet number in the header
+implement total packets in the header to be expected?
+implement program not crying if producer has no subscribers
+**********************************
+
+
+
+subscribe / unsubscribe requests = 9 bytes
 
 (2 byte header_length)(1 byte request_type)(3 byte prod_id)(3 byte sub_id)
 
 
-normal packets to subscriber = 
+normal packets = 6 bytes
 
 (2 byte header_length)(1 byte request_type)(3 byte prod_id)
