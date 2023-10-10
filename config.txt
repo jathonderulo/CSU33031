@@ -1,0 +1,12 @@
+producers start from port 50000
+brokers start from port 50010
+subscribers start from port 50020
+
+subscribe / unsubscribe requests =  
+
+(2 byte header_length)(1 byte request_type)(3 byte prod_id)(3 byte sub_id)
+
+
+normal packets to subscriber = 
+
+(2 byte header_length)(1 byte request_type)(3 byte prod_id)
