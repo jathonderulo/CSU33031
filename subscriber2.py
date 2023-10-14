@@ -1,5 +1,5 @@
 import socket
-import random
+from random import randint
 
 # Subscriber details
 sub_address_and_port        = ("subscriber2", 50021)
@@ -13,7 +13,10 @@ broker_ip                   = "broker"
 broker_port                 = 50010
 
 # Buffer Size
-bufferSize          = 1024
+bufferSize          = 50000
+
+# Create a datagram socket
+sub_socket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
 
 # Create a datagram socket
 sub_socket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
@@ -32,11 +35,11 @@ def send_subscribe_request(prod_id, sub_id, broker_address_and_port):
     header_and_message = header + message
     print(header_and_message.decode())
     sub_socket.sendto(header_and_message, broker_address_and_port)
-    print("Sent subscriber request")
+    print("Sent subscribe request")
     # ack_code = sub_socket.recvfrom(bufferSize)
 
     # TODO handle ack code here
-def send_unsubscribe_request(prod_id, sub_id, broker_address_and_port):
+def send_unsubscribe_request(prod_id, sub_id, broker_address_and_Port):
     request_type = "U"
     header_length = "03"
     header = str.encode(header_length + request_type)
@@ -45,31 +48,48 @@ def send_unsubscribe_request(prod_id, sub_id, broker_address_and_port):
     print(header_and_message.decode())
     sub_socket.sendto(header_and_message, broker_address_and_port)
     print("Sent unsubscribe request")
-
-def maybe_sub(prod_id, sub_id, broker_address_and_port):
+def toggle_subscribe():
+    toggle_sub("P02", local_id, broker_address_and_port, subscribed)
+def toggle_sub(prod_id, sub_id, broker_address_and_port, subscribed):
     if subscribed:
         send_unsubscribe_request(prod_id, sub_id, broker_address_and_port)
         subscribed = False
-        print("I think I unsubscribed")
 
     else:
         send_subscribe_request(prod_id, sub_id, broker_address_and_port)
         subscribed = True
-        print("I think I subscribed")
+def randomly_subscribe():
+    num = 5000000
+    while(True):
+        if randint(0, 10000000) == num:
+            toggle_subscribe()
+            break
 
 subscribed = False
-
-send_subscribe_request("P01", local_id, broker_address_and_port)
-subscribed = True
-
-
+toggle_subscribe()
+subscribed = not subscribed
 
 while(True):
-    message, address = sub_socket.recvfrom(bufferSize)
-    print("sub received")
-    print(message.decode()  )
-    header_length = message[:2]
-    message_as_string = message.decode()
-    if message[2] == "P":
-        print("Received packet from" + message[3:header_length] + ", message is: " + message[header_length:] )
+    if subscribed:
+        message, address = sub_socket.recvfrom(bufferSize)
+
+        header_length = int(message[:2])
+        header_decoded = message[:header_length].decode()
+        # print("Header is : " + header_decoded)
+        if header_decoded[2] == "P":
+            print("Received a packet from " + header_decoded[header_length-3:])
+            print("Frame " + header_decoded[3:5] + " of " + header_decoded[5:7])
+            # Open a new file in binary write mode
+            with open('sub2/output' + header_decoded[3:5] + '.png', 'wb') as new_file:
+                # Write the bytes to the new file
+                new_file.write(message[header_length:])
         
+        if randint(0, 10) == 5:
+            toggle_subscribe()
+            subscribed = False
+            print("Unsubscribed")
+
+    else:
+        randomly_subscribe()
+        print("Subscribed!")
+        subscribed = True

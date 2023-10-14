@@ -73,16 +73,15 @@ def subscribe(prod_id, sub_id, sub_address_and_port):
             break
     
     if prod_found == False:
-        print("SUBSCRIBE FAILED NO PROD FOUND")
+        print("Subscribe failed, no producer found.")
         return -1
 
-    print("SUBSCRIBE WORKED")
+    print(sub_id + " has successfully subscribed to " + prod_id)
 
 def unsubscribe(prod_id, sub_id, sub_address_and_port):
     # TODO implement unsubscribe + error checking for sub_id / prod_id
     # TODO I have to check sub_id exists, prod_id exists, and that sub is subscribed to prod, and prod has sub as a subscriber
 
-    print("unsubscribe called")
     # Check sub exists in our list
     sub_found = False
     for sub in subscribers_list:
@@ -111,8 +110,8 @@ def unsubscribe(prod_id, sub_id, sub_address_and_port):
     if prod in sub.subscribed_to_list:
         prod.subs_list.remove(sub)
         sub.subscribed_to_list.remove(prod)
-    
-    print("I think unsubscribed")
+
+    print(sub_id + " has successfully unsubscribed to " + prod_id)
 
 
 while(True):
@@ -121,29 +120,29 @@ while(True):
     header_length = int(message[:2])
     header = message[:header_length]
 
-    # message_as_string = message.decode()
-    # print(message_as_string)
-    # packet_request_type = header.decode()[2]
+    # print(header_length)
 
-    print(message[:6].decode())
     packet_request_type = message[:6].decode()[2]
-    print("Packet request type is: " + packet_request_type)
-
+    print("Request type is: " + packet_request_type)
+    
     if packet_request_type == "S": #example message = 03SP01S01
         message_as_string = message.decode()
-        print(message_as_string)
+        # print(message_as_string)
         prod_id = message_as_string[header_length:][:3]
+        # print(prod_id)
         sub_id = message_as_string[header_length:][3:6]
         subscribe(prod_id, sub_id, address)
 
     elif packet_request_type == "P": # packet
-        print("Received a packet")
-        prod_id_last_digit = message_as_string[header_length-1] # header length as int would take the last digit of the prod id. e.g. 06PP01, headerlengthasint = 6. 
+        prod_id_last_digit = int(message[:header_length].decode()[header_length-1]) 
         # print(int(prod_id_last_digit))
-        # print(len(producers_list[0].subs_list))
-        for subscriber in producers_list[int(prod_id_last_digit)-1].subs_list:
-            # print("Broker sent msg! ")
-            broker_socket.sendto(message, subscriber.sub_address_and_port)
+        
+        if len(producers_list[prod_id_last_digit-1].subs_list) != 0:
+            for subscriber in producers_list[prod_id_last_digit-1].subs_list:
+                # print("Broker sent msg! ")
+                broker_socket.sendto(message, subscriber.sub_address_and_port)
+        else:
+            print("P0" + str(prod_id_last_digit) + " has no subscribers")
 
     elif packet_request_type == "U":
         message_as_string = message.decode()

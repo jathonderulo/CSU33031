@@ -18,6 +18,6 @@ subscribe / unsubscribe requests = 9 bytes
 (2 byte header_length)(1 byte request_type)(3 byte prod_id)(3 byte sub_id)
 
 
-normal packets = 6 bytes
+normal packets = 10 bytes
 
-(2 byte header_length)(1 byte request_type)(3 byte prod_id)
+(2 byte header_length)(1 byte request_type)(2 bytes frame number)(2 bytes frames to expect)(3 byte prod_id)

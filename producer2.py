@@ -1,10 +1,11 @@
 import socket
+from random import randint
 
 # Producer details
 local_address_and_port       = ("producer2", 50001)
 local_ip                     = "producer2"
 local_port                   = 50001
-prod_id = "P02"
+local_id = "P02"
 
 # Broker details
 broker_address_and_port     = ("broker", 50010)
@@ -26,8 +27,9 @@ print("Producer up and running.")
 timer = 0;
 frame_no = 1;
 
-header_length = "05"
-
+packet_header_length = "10"
+max_frames = "20"
+stop = False
 while(True):
 
     if(timer < 30000000):
@@ -35,11 +37,24 @@ while(True):
 
     else:
         timer = 0
-        frame_no += 1
-        print("Frame " + str(frame_no))
-        msg = "From P2: frame " + str(frame_no)
-        header_and_message = header_length + prod_id + msg
-        local_socket.sendto(str.encode(header_and_message), broker_address_and_port)
+
+        if randint(0, 15) == 5:
+            print("Producing frames = " + str(stop))
+            stop = not stop
+
+        if not stop:
+            # Read bytes from a file
+            with open('First20Frames/frame' + str(frame_no).zfill(3) + '.png', 'rb') as file:
+                file_bytes = file.read()
+
+            print("Frame " + str(frame_no))
+
+            msg = file_bytes
+            request_type = "P"
+            header = request_type + str(frame_no).zfill(2) + max_frames + local_id
+            frame_no += 1
+            header_and_message = str.encode(packet_header_length + header) + msg
+            local_socket.sendto(header_and_message, broker_address_and_port)
 
 
 
