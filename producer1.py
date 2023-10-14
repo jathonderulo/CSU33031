@@ -27,7 +27,7 @@ print("Producer up and running.")
 timer = 0;
 frame_no = 1;
 
-packet_header_length = "10"
+packet_header_length = "13"
 max_frames = "20"
 stop = False
 while(True):
@@ -49,11 +49,13 @@ while(True):
 
             print("Frame " + str(frame_no))
             
-            msg = file_bytes
             request_type = "P"
-            header = request_type + str(frame_no).zfill(2) + max_frames + local_id
+            msg = file_bytes
+            text = "Frame number " + str(frame_no) + " from P01"
+            length_of_text = str(len(text)).zfill(3)
+            header = request_type + str(frame_no).zfill(2) + max_frames + length_of_text + local_id
             frame_no += 1
-            header_and_message = str.encode(packet_header_length + header) + msg
+            header_and_message = str.encode(packet_header_length + header + text) + msg
             local_socket.sendto(header_and_message, broker_address_and_port)
 
 

@@ -73,14 +73,16 @@ while(True):
 
         header_length = int(message[:2])
         header_decoded = message[:header_length].decode()
+        text_length = int(header_decoded[-7:-3])
         # print("Header is : " + header_decoded)
         if header_decoded[2] == "P":
-            print("Received a packet from " + header_decoded[header_length-3:])
-            print("Frame " + header_decoded[3:5] + " of " + header_decoded[5:7])
+            # print("Received a packet from " + header_decoded[header_length-3:])
+            # print("Frame " + header_decoded[3:5] + " of " + header_decoded[5:7])
+            print("Text: " + message[header_length:(header_length+text_length)].decode())
             # Open a new file in binary write mode
             with open('sub1/output' + header_decoded[3:5] + '.png', 'wb') as new_file:
                 # Write the bytes to the new file
-                new_file.write(message[header_length:])
+                new_file.write(message[header_length + text_length:])
 
         if randint(0, 10) == 5:
             toggle_subscribe()
