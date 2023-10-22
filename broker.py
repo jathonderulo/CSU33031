@@ -1,4 +1,5 @@
 import socket
+from time import sleep
 
 class Producer:
     def __init__(self, prod_id):
@@ -78,6 +79,12 @@ def subscribe(prod_id, sub_id, sub_address_and_port):
 
     print(sub_id + " has successfully subscribed to " + prod_id)
 
+    # Send ack
+    msg = "09A" + prod_id + sub_id
+    sleep(0.5)
+    broker_socket.sendto(str.encode(msg), sub_address_and_port)
+
+
 def unsubscribe(prod_id, sub_id, sub_address_and_port):
     # TODO implement unsubscribe + error checking for sub_id / prod_id
     # TODO I have to check sub_id exists, prod_id exists, and that sub is subscribed to prod, and prod has sub as a subscriber
@@ -85,7 +92,7 @@ def unsubscribe(prod_id, sub_id, sub_address_and_port):
     # Check sub exists in our list
     sub_found = False
     for sub in subscribers_list:
-        print(sub.sub_id + " " + sub_id)
+        # print(sub.sub_id + " " + sub_id)
         if sub.sub_id == sub_id:
             sub_found = True
             break
@@ -111,7 +118,11 @@ def unsubscribe(prod_id, sub_id, sub_address_and_port):
         prod.subs_list.remove(sub)
         sub.subscribed_to_list.remove(prod)
 
-    print(sub_id + " has successfully unsubscribed to " + prod_id)
+    print(sub_id + " has successfully unsubscribed from " + prod_id)
+    # Send ack
+    sleep(0.5)
+    msg = "09A" + prod_id + sub_id
+    broker_socket.sendto(str.encode(msg), sub_address_and_port)
 
 
 while(True):
@@ -123,7 +134,7 @@ while(True):
     # print(header_length)
 
     packet_request_type = message[:6].decode()[2]
-    print("Request type is: " + packet_request_type)
+    # print("Request type is: " + packet_request_type)
     
     if packet_request_type == "S": #example message = 03SP01S01
         message_as_string = message.decode()
@@ -136,17 +147,17 @@ while(True):
     elif packet_request_type == "P": # packet
         prod_id_last_digit = int(message[:header_length].decode()[header_length-1]) 
         # print(int(prod_id_last_digit))
-        
+        print("Received packet from " + header[-3:].decode())
         if len(producers_list[prod_id_last_digit-1].subs_list) != 0:
             for subscriber in producers_list[prod_id_last_digit-1].subs_list:
                 # print("Broker sent msg! ")
                 broker_socket.sendto(message, subscriber.sub_address_and_port)
         else:
-            print("P0" + str(prod_id_last_digit) + " has no subscribers")
+            print("Received packet from P0" + str(prod_id_last_digit) + " but P0" + str(prod_id_last_digit) + " has no subscribers")
 
     elif packet_request_type == "U":
         message_as_string = message.decode()
-        print(message_as_string)
+        # print(message_as_string)
         prod_id = message_as_string[header_length:][:3]
         sub_id = message_as_string[header_length:][3:6]
         unsubscribe(prod_id, sub_id, address)

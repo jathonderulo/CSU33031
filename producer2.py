@@ -25,10 +25,10 @@ print("Producer up and running.")
 
 
 timer = 0;
-frame_no = 1;
+frame_no = 301;
 
-packet_header_length = "13"
-max_frames = "20"
+packet_header_length = "15"
+max_frames = "612"
 stop = False
 while(True):
 
@@ -38,13 +38,17 @@ while(True):
     else:
         timer = 0
 
-        if randint(0, 10) == 5:
-            print("Producing frames = " + str(stop))
+        if randint(0, 15) == 5:
+            if stop:
+                print("Continue")
+
+            else:
+                print("Pause")
             stop = not stop
 
         if not stop:
             # Read bytes from a file
-            with open('First20Frames/frame' + str(frame_no).zfill(3) + '.png', 'rb') as file:
+            with open('FrameSamples2/frame' + str(frame_no).zfill(3) + '.png', 'rb') as file:
                 file_bytes = file.read()
 
             print("Frame " + str(frame_no))
@@ -53,7 +57,7 @@ while(True):
             msg = file_bytes
             text = "Frame number " + str(frame_no) + " from P02"
             length_of_text = str(len(text)).zfill(3)
-            header = request_type + str(frame_no).zfill(2) + max_frames + length_of_text + local_id
+            header = request_type + str(frame_no).zfill(3) + max_frames + length_of_text + local_id
             frame_no += 1
             header_and_message = str.encode(packet_header_length + header + text) + msg
             local_socket.sendto(header_and_message, broker_address_and_port)
