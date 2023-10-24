@@ -26,7 +26,6 @@ sub_socket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
 sub_socket.bind((sub_ip, sub_port))
 print("Subscriber up and running.")
 
-local_subscribed_to_list = []
 
 def send_subscribe_request(prod_id, sub_id, broker_address_and_port):
     request_type = "S"
@@ -49,8 +48,8 @@ def send_unsubscribe_request(prod_id, sub_id, broker_address_and_Port):
     # print(header_and_message.decode())
     sub_socket.sendto(header_and_message, broker_address_and_port)
     # print("Sent unsubscribe request")
-def toggle_subscribe():
-    toggle_sub("P02", local_id, broker_address_and_port, subscribed)
+def toggle_subscribe(sub_id):
+    toggle_sub(sub_id, local_id, broker_address_and_port, subscribed)
 def toggle_sub(prod_id, sub_id, broker_address_and_port, subscribed):
     if subscribed:
         send_unsubscribe_request(prod_id, sub_id, broker_address_and_port)
@@ -60,16 +59,20 @@ def toggle_sub(prod_id, sub_id, broker_address_and_port, subscribed):
         send_subscribe_request(prod_id, sub_id, broker_address_and_port)
         subscribed = True
 def randomly_subscribe():
+    if randint(0, 1) == 1:
+        sub_id = "P01"
+    else:
+        sub_id = "P02"
+        
     num = 500000
     while(True):
         if randint(0, 1000000) == num:
-            toggle_subscribe()
+            toggle_subscribe(sub_id)
             break
 
-sent_unsub = False
 subscribed = False
-toggle_subscribe()
-sent_sub = True
+subbed_to = "P02"
+toggle_subscribe(subbed_to)
 subscribed = not subscribed
 
 while(True):
@@ -93,7 +96,7 @@ while(True):
                 new_file.write(message[header_length + text_length:]) 
 
         if randint(0, 15) == 5:
-            toggle_subscribe()
+            toggle_subscribe(subbed_to)
             subscribed = False
             # print("Unsubscribed!")
             message, address = sub_socket.recvfrom(bufferSize)
