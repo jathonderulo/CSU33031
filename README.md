@@ -1,5 +1,5 @@
-# CSU33031
+Jumpscare warning - I did this in third year college 😬
 
-Implementing a pub/sub model via docker containers for video streaming. Achieved through setting up docker containers and connecting them via a docker network so they can communicate. Communication across the network uses a custom protocol built on top of UDP. 
+Implementing a pub/sub model via docker containers for video streaming. Achieved through setting up docker containers and connecting them via a docker network so they can communicate. Communication across the network uses a custom protocol built on top of UDP. Python and stuff. 
 
-This was a college assignment back in third year, I know it could it better, have mercy :D 
+
